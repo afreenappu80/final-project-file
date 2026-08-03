@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: student-attendance-system
+    env: node
+    buildCommand: "cd client && npm install && npm run build && cd ../server && npm install"
+    startCommand: "cd server && npm start"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: SESSION_SECRET
+        value: student_attendance_super_secret_key_demo
+      - key: CLIENT_URL
+        value: ""

@@ -1,0 +1,13 @@
+{
+  "name": "student-attendance-system-demo",
+  "version": "1.0.0",
+  "description": "Root package for Glitch deployment",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "install": "cd server && npm install"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}

@@ -7,17 +7,23 @@ const session = require('express-session');
 const path = require('path');
 require('dotenv').config();
 
-// Initialize app
 const app = express();
 
 // Middleware
 app.use(helmet({
-  crossOriginResourcePolicy: false,
+crossOriginResourcePolicy: false,
 }));
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', process.env.CLIENT_URL],
-  credentials: true
+origin: [
+'http://localhost:5173',
+'http://localhost:5174',
+'http://localhost:5175',
+process.env.CLIENT_URL
+].filter(Boolean),
+credentials: true
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -25,20 +31,20 @@ app.use(morgan('dev'));
 
 // Session management
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24 // 1 day
-  }
+secret: process.env.SESSION_SECRET || 'secret',
+resave: false,
+saveUninitialized: false,
+cookie: {
+secure: process.env.NODE_ENV === 'production',
+httpOnly: true,
+maxAge: 1000 * 60 * 60 * 24
+}
 }));
 
-// Serve static files (Profile images, assignments)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Routes
+// API Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/students', require('./routes/studentRoutes'));
 app.use('/api/profile', require('./routes/profileRoutes'));
@@ -52,30 +58,38 @@ app.use('/api/assignments', require('./routes/assignmentRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
 
-// Basic health check route
+// Health check
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'success', message: 'API is running' });
+res.status(200).json({
+status: 'success',
+message: 'API is running'
 });
+});
+
+// Serve frontend in production
+if (process.env.NODE_ENV === 'production') {
+const clientPath = path.join(__dirname, '../client/dist');
+
+app.use(express.static(clientPath));
+
+// Express 5 compatible SPA fallback
+app.get('/{*splat}', (req, res) => {
+res.sendFile(path.join(clientPath, 'index.html'));
+});
+}
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    status: 'error',
-    message: err.message || 'Internal Server Error'
-  });
+console.error(err.stack);
+
+res.status(500).json({
+status: 'error',
+message: err.message || 'Internal Server Error'
+});
 });
 
 const PORT = process.env.PORT || 5000;
 
-// Serve frontend in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/dist')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../client/dist', 'index.html'));
-  });
-}
-app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+console.log("Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}");
 });

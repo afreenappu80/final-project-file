@@ -34,7 +34,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan('dev'));
 
-// Session
+// Session management
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'secret',
@@ -48,7 +48,7 @@ app.use(
   })
 );
 
-// Uploads
+// Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
@@ -59,10 +59,8 @@ app.use('/api/departments', require('./departmentRoutes'));
 app.use('/api/subjects', require('./subjectRoutes'));
 app.use('/api/attendance', require('./attendanceRoutes'));
 app.use('/api/marks', require('./marksRoutes'));
-app.use('/api/notifications', require('./notificationRoutes'));
 app.use('/api/reports', require('./reportRoutes'));
 app.use('/api/assignments', require('./assignmentRoutes'));
-app.use('/api/dashboard', require('./dashboardRoutes'));
 app.use('/api/analytics', require('./analyticsRoutes'));
 
 // Health check
@@ -88,5 +86,7 @@ const PORT = process.env.PORT || 5000;
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  console.log(
+    `Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`
+  );
 });
